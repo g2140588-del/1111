@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>兔Q写字台</title>
+    
+    <!-- PWA (Progressive Web App) 核心配置 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="white">
+    <meta name="apple-mobile-web-app-title" content="兔Q调试台">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/Dspbfrs/f1fcf8e42aed06996ec48c029c4113aa.png">
+    
     <style>
         /* ================= 1. 全局与基础变量 ================= */
         @import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap");
@@ -192,8 +201,8 @@
         <div class="app-header back-btn">
             <span class="back-btn"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></span>
             <div class="app-header-center">
-                <span id="chatHeaderTitle">兔兔园长</span>
-                <span id="chatHeaderSignature">兔兔准时到达~为您服务！</span>
+                <span id="chatHeaderTitle">兔兔专属AI</span>
+                <span id="chatHeaderSignature">今天也要开开心心呀✨</span>
             </div>
             <span class="app-header-right-icon"><svg viewBox="0 0 1024 1024" fill="currentColor" width="22" height="22"><path d="M512 64c247.424 0 448 200.576 448 448s-200.576 448-448 448S64 759.424 64 512 264.576 64 512 64z m0 64C299.936 128 128 299.936 128 512s171.936 384 384 384 384-171.936 384-384S724.064 128 512 128z m256 320a64 64 0 1 1 0 128 64 64 0 0 1 0-128z m-256 0a64 64 0 1 1 0 128 64 64 0 0 1 0-128z m-256 0a64 64 0 1 1 0 128 64 64 0 0 1 0-128z"></path></svg></span>
         </div>
@@ -330,25 +339,25 @@
     </div>
 
     <!-- 高级 CSS 编辑器入口 -->
-    <div id="btnOpenCss" onclick="openCssPanel()"> 写 CSS</div>
+    <div id="btnOpenCss" onclick="openCssPanel()">✍️ 写 CSS</div>
 
     <div id="cssEditorPanel">
         <div class="css-editor-header">
             <div class="css-editor-top">
-                <span class="css-editor-title">代码面板</span>
+                <span class="css-editor-title">高级代码面板</span>
                 <button class="css-editor-btn danger" onclick="closeCssPanel()">收起</button>
             </div>
             <div class="css-tools-ribbon">
-                <button class="css-editor-btn" onclick="removePseudoElements()"> 去除伪元素</button>
-                <button class="css-editor-btn" onclick="clearCss()" style="color:#ff4d4f; border-color:rgba(255,77,79,0.3);">清空</button>
-                <button class="css-editor-btn" onclick="undoCss()">撤回</button>
-                <button class="css-editor-btn" onclick="toggleSearchBar()">查找/替换</button>
-                <button class="css-editor-btn" onclick="scrollToTop()">开头</button>
-                <button class="css-editor-btn" onclick="scrollToBottom()">结尾</button>
-                <button class="css-editor-btn" id="btnInspector" onclick="toggleInspector()">探测</button>
-                <button class="css-editor-btn" onclick="copyCss()">复制</button>
-                <button class="css-editor-btn" onclick="exportJson()">导出</button>
-                <button class="css-editor-btn" onclick="document.getElementById('fileInput').click()">导入</button>
+                <button class="css-editor-btn" onclick="removePseudoElements()">🧹 去除伪</button>
+                <button class="css-editor-btn" onclick="undoCss()">↩️ 撤回</button>
+                <button class="css-editor-btn" onclick="clearCss()" style="color:#ffb8b8;">🗑️ 清空</button>
+                <button class="css-editor-btn" onclick="toggleSearchBar()">🔍 查替</button>
+                <button class="css-editor-btn" onclick="scrollToTop()">🔝 开头</button>
+                <button class="css-editor-btn" onclick="scrollToBottom()">⬇️ 结尾</button>
+                <button class="css-editor-btn" id="btnInspector" onclick="toggleInspector()">🎯 探测</button>
+                <button class="css-editor-btn" onclick="copyCss()">📋 复制</button>
+                <button class="css-editor-btn" onclick="exportJson()">📤 导出</button>
+                <button class="css-editor-btn" onclick="document.getElementById('fileInput').click()">📥 导入</button>
             </div>
             <div class="search-replace-bar" id="searchBar">
                 <input type="text" id="findInput" class="search-input" placeholder="查找..." oninput="updateSearchBtnState()">
@@ -383,6 +392,17 @@
     <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="importJson(event)">
 
     <script>
+        // PWA Service Worker 注册
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+        
         // ================= 1. 扩展面板开关逻辑 =================
         function toggleExtPanel() {
             const panel = document.getElementById('chatExtPanel');
@@ -493,7 +513,7 @@
                 showToast('⚠️ 已经是空的啦');
                 return;
             }
-            pushHistory(cssInput.value);
+            pushHistory(cssInput.value); // 先保存当前内容，方便撤回
             cssInput.value = '';
             updateEditor();
             showToast('🗑️ 已清空！点【撤回】可恢复');
@@ -514,7 +534,6 @@
             cssInput.focus();
         }
 
-        // ================= 净空伪元素 (优化版，保留顶底渐变遮罩) =================
         function removePseudoElements() {
             const cssInput = document.getElementById('customCssInput');
             const hideCss = `
@@ -602,13 +621,13 @@
             }
         }
 
-        // ================= 新增：魔法类名探测器 (弹窗版升级) =================
+        // ================= 5. 魔法类名探测器 (弹窗版升级) =================
         const elementDict = {
             'app-header': '顶部导航栏 (整体容器)',
             'back-btn': '左上角返回按钮',
             'app-header-center': '顶部中心标题区',
-            'chat-header-title': '聊天对象名字',
-            'chat-header-signature': '聊天对象个性签名',
+            'chatHeaderTitle': '聊天对象名字',
+            'chatHeaderSignature': '聊天对象个性签名',
             'app-header-right-icon': '右上角菜单按钮',
             'chatContent': '聊天内容滚动区',
             'chatInterface': '全局聊天界面(底层)',
@@ -736,7 +755,6 @@
             
             if (matchedKey === 'action-only') baseSelector = '.bubble.action-only';
             
-            // 如果是加号按钮，自动帮用户展开/收起面板
             if (matchedKey === 'btn-panel-toggle') {
                 toggleExtPanel();
             }
@@ -746,7 +764,6 @@
             const listDiv = document.getElementById('insOptionList');
             listDiv.innerHTML = '';
 
-            // 如果点击了顶部导航栏，自动追加顶部渐变遮罩的选项
             if (matchedKey === 'app-header' || matchedKey === 'chatInterface') {
                 listDiv.innerHTML += `
                     <div class="ins-option-btn" onclick="copyFromInspector('${baseSelector}')">
@@ -842,7 +859,7 @@
             navigator.clipboard.writeText(val).then(() => showToast('📋 已复制全部代码')).catch(() => showToast('复制失败，请手动全选'));
         }
 
-        // ================= 6. 初始化加载 =================
+        // ================= 6. 初始化加载与自动保存 =================
         window.onload = () => {
             const cssInput = document.getElementById('customCssInput');
             const highlightLayer = document.getElementById('highlightLayer');
@@ -869,11 +886,66 @@
             setInterval(() => {
                 const currentCss = document.getElementById('customCssInput').value;
                 try {
-                    localStorage.setItem('rabbitQ_dev_css', currentCss);
-                    showToast('⏱️ 已自动保存到本地');
+                    // 仅当内容不为空时才保存和提示
+                    if (currentCss.trim() !== '') {
+                         localStorage.setItem('rabbitQ_dev_css', currentCss);
+                         showToast('⏱️ 已自动保存');
+                    }
                 } catch(e) {}
             }, 60000);
         };
+    </script>
+
+    <!-- PWA Service Worker 和 manifest 文件 -->
+    <script>
+        const manifest = {
+          "name": "兔Q样式调试台",
+          "short_name": "兔Q调试台",
+          "start_url": ".",
+          "display": "standalone",
+          "background_color": "#ffffff",
+          "theme_color": "#ffffff",
+          "description": "一个用于实时预览和编辑CSS的聊天界面",
+          "icons": [
+            {
+              "src": "https://i.ibb.co/Dspbfrs/f1fcf8e42aed06996ec48c029c4113aa.png",
+              "sizes": "192x192",
+              "type": "image/png"
+            },
+            {
+              "src": "https://i.ibb.co/Dspbfrs/f1fcf8e42aed06996ec48c029c4113aa.png",
+              "sizes": "512x512",
+              "type": "image/png"
+            }
+          ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        document.querySelector('link[rel="manifest"]').setAttribute('href', manifestURL);
+
+        const swContent = `
+            self.addEventListener('install', (e) => {
+              e.waitUntil(
+                caches.open('bunny-css-editor-cache').then((cache) => {
+                  return cache.addAll(['./', './index.html']);
+                })
+              );
+            });
+
+            self.addEventListener('fetch', (e) => {
+              e.respondWith(
+                caches.match(e.request).then((response) => {
+                  return response || fetch(e.request);
+                })
+              );
+            });
+        `;
+        const swBlob = new Blob([swContent], {type: 'application/javascript'});
+        const swURL = URL.createObjectURL(swBlob);
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register(swURL);
+        }
     </script>
 </body>
 </html>
