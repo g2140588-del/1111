@@ -543,12 +543,12 @@
             
             const listDiv = document.getElementById('insOptionList');
             listDiv.innerHTML = `
-                <div class="ins-option-btn" onclick="appendPseudoCss('#chatInterface .app-header::before { display: none !important; }', '顶栏左条')">
-                    <div class="ins-opt-label">隐藏 顶栏左条 <span>点击添加</span></div>
+                <div class="ins-option-btn" onclick="appendPseudoCss('#chatInterface .app-header::before { display: none !important; }', '顶栏左侧装饰')">
+                    <div class="ins-opt-label">隐藏 顶栏左侧装饰 <span>点击添加</span></div>
                     <div class="ins-opt-code">.app-header::before</div>
                 </div>
-                <div class="ins-option-btn" onclick="appendPseudoCss('#chatInterface .app-header::after { display: none !important; }', '顶栏右条')">
-                    <div class="ins-opt-label">隐藏 顶栏右条 <span>点击添加</span></div>
+                <div class="ins-option-btn" onclick="appendPseudoCss('#chatInterface .app-header::after { display: none !important; }', '顶栏右侧装饰')">
+                    <div class="ins-opt-label">隐藏 顶栏右侧装饰<span>点击添加</span></div>
                     <div class="ins-opt-code">.app-header::after</div>
                 </div>
                 <div class="ins-option-btn" onclick="appendPseudoCss('#chatContent .msg-row.user .bubble:not(.action-only):not(.sticker-only)::after { display: none !important; }', 'User气泡角标')">
