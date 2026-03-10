@@ -1,34 +1,62 @@
 // Service Worker 文件 (sw.js)
 
-// 定义缓存名称
-const CACHE_NAME = 'bunny-css-editor-cache-v1';
-// 定义需要缓存的核心文件
+// ⚠️ 注意宝宝：以后每次你修改了 index.html 的代码并提交到 Git
+// 一定要记得把这里的 v1 改成 v2, v3, v4... 这样浏览器才会知道有新版本！
+const CACHE_NAME = 'bunny-css-editor-cache-v2'; 
+
 const urlsToCache = [
   './',
   './index.html'
-  // 如果你有其他 CSS 或 JS 文件，也可以加在这里
 ];
 
-// 监听 install 事件，在安装时缓存核心资源
+// 1. 安装阶段：强制新版本立刻跳过等待
 self.addEventListener('install', (event) => {
+  self.skipWaiting(); // 强制新 Service Worker 立即生效
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
+        console.log('[SW] 正在缓存新资源...');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-// 监听 fetch 事件，拦截网络请求
+// 2. 激活阶段：清理旧版本的垃圾缓存 (✨ 本天才加的新大招)
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          // 如果缓存名字和现在的版本号对不上，直接干掉！
+          if (cacheName !== CACHE_NAME) {
+            console.log('[SW] 正在清理旧缓存:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      console.log('[SW] 新版本已全面接管！');
+      return self.clients.claim(); // 立即控制所有打开的页面
+    })
+  );
+});
+
+// 3. 拦截请求阶段：改为网络优先 (Network First) 策略 (✨ 核心修改)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    // 尝试从缓存中查找匹配的请求
-    caches.match(event.request)
-      .then((response) => {
-        // 如果在缓存中找到了，就直接返回缓存的资源
-        // 如果没找到，就通过网络去请求，并正常返回
-        return response || fetch(event.request);
-      })
+    fetch(event.request).then((networkResponse) => {
+      // 如果网络通畅且拿到了新数据，就顺手更新一下本地缓存
+      if (networkResponse && networkResponse.status === 200) {
+        const responseToCache = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
+      }
+      return networkResponse;
+    }).catch(() => {
+      // 如果断网了，或者请求失败，才委屈一下从缓存里拿旧代码兜底
+      console.log('[SW] 网络不通，正在使用缓存兜底...');
+      return caches.match(event.request);
+    })
   );
 });
