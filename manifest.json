@@ -6,10 +6,15 @@
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
   "description": "一个用于实时预览和编辑CSS的聊天界面",
-  "icons": [
+"icons": [
     {
-      "src": "https://i.ibb.co/Dspbfrs/f1fcf8e42aed06996ec48c029c4113aa.png",
-      "sizes": "any",
+      "src": "https://via.placeholder.com/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
