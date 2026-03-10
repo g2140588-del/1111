@@ -10,6 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="white">
     <meta name="apple-mobile-web-app-title" content="兔Q调试台">
     <meta name="theme-color" content="#ffffff">
+    <!-- ✨ 核心修改：直接链接到 manifest.json 文件 -->
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="https://i.ibb.co/Dspbfrs/f1fcf8e42aed06996ec48c029c4113aa.png">
     
@@ -38,11 +39,9 @@
         .sub-page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; z-index: 250; display: flex; flex-direction: column; backdrop-filter: blur(10px); }
         .chat-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; padding: 15px; transition: padding-bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
         
-        /* 聊天区防遮挡 */
         #chatContent { padding-top: 95px !important; padding-bottom: 60px !important; }
         #chatContent.panel-open { padding-bottom: 350px !important; }
 
-        /* 顶部与底部防穿透渐变遮罩 */
         #chatInterface::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 120px; background: linear-gradient(to bottom, rgba(255,255,255,1) 40%, rgba(255,255,255,0) 100%); z-index: 90; pointer-events: none; }
         #chatInterface::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 35px; background: linear-gradient(to top, rgba(255,255,255,1) 40%, rgba(255,255,255,0) 100%); z-index: 90; pointer-events: none; }
 
@@ -392,14 +391,37 @@
     <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="importJson(event)">
 
     <script>
-        // PWA Service Worker 注册
+        // ✨✨ PWA Service Worker 注册 ✨✨
+        // 只有当这个文件被部署到 HTTPS 服务器上时，这个部分才会生效
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(registration => {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                }, err => {
-                    console.log('ServiceWorker registration failed: ', err);
-                });
+                // 我们直接将 Service Worker 代码作为字符串，用 Blob URL 注册
+                // 这避免了需要一个单独的 sw.js 文件
+                const swContent = `
+                    const CACHE_NAME = 'bunny-css-editor-cache-v1';
+                    const urlsToCache = ['./', './index.html']; // 缓存核心文件
+
+                    self.addEventListener('install', (event) => {
+                        event.waitUntil(
+                            caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
+                        );
+                    });
+
+                    self.addEventListener('fetch', (event) => {
+                        event.respondWith(
+                            caches.match(event.request).then((response) => response || fetch(event.request))
+                        );
+                    });
+                `;
+                const swBlob = new Blob([swContent], {type: 'application/javascript'});
+                const swUrl = URL.createObjectURL(swBlob);
+                
+                navigator.serviceWorker.register(swUrl)
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    }).catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
             });
         }
         
@@ -506,7 +528,7 @@
                 showToast('没有可撤回的步骤了');
             }
         }
-        
+
         function clearCss() {
             const cssInput = document.getElementById('customCssInput');
             if(cssInput.value.trim() === '') {
@@ -626,8 +648,8 @@
             'app-header': '顶部导航栏 (整体容器)',
             'back-btn': '左上角返回按钮',
             'app-header-center': '顶部中心标题区',
-            'chatHeaderTitle': '聊天对象名字',
-            'chatHeaderSignature': '聊天对象个性签名',
+            'chat-header-title': '聊天对象名字',
+            'chat-header-signature': '聊天对象个性签名',
             'app-header-right-icon': '右上角菜单按钮',
             'chatContent': '聊天内容滚动区',
             'chatInterface': '全局聊天界面(底层)',
@@ -853,7 +875,7 @@
             reader.readAsText(file);
             e.target.value = ''; 
         }
-
+        
         function copyCss() {
             const val = document.getElementById('customCssInput').value;
             navigator.clipboard.writeText(val).then(() => showToast('📋 已复制全部代码')).catch(() => showToast('复制失败，请手动全选'));
@@ -886,7 +908,6 @@
             setInterval(() => {
                 const currentCss = document.getElementById('customCssInput').value;
                 try {
-                    // 仅当内容不为空时才保存和提示
                     if (currentCss.trim() !== '') {
                          localStorage.setItem('rabbitQ_dev_css', currentCss);
                          showToast('⏱️ 已自动保存');
@@ -894,58 +915,6 @@
                 } catch(e) {}
             }, 60000);
         };
-    </script>
-
-    <!-- PWA Service Worker 和 manifest 文件 -->
-    <script>
-        const manifest = {
-          "name": "兔Q样式调试台",
-          "short_name": "兔Q调试台",
-          "start_url": ".",
-          "display": "standalone",
-          "background_color": "#ffffff",
-          "theme_color": "#ffffff",
-          "description": "一个用于实时预览和编辑CSS的聊天界面",
-          "icons": [
-            {
-              "src": "https://i.ibb.co/Dspbfrs/f1fcf8e42aed06996ec48c029c4113aa.png",
-              "sizes": "192x192",
-              "type": "image/png"
-            },
-            {
-              "src": "https://i.ibb.co/Dspbfrs/f1fcf8e42aed06996ec48c029c4113aa.png",
-              "sizes": "512x512",
-              "type": "image/png"
-            }
-          ]
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(manifestBlob);
-        document.querySelector('link[rel="manifest"]').setAttribute('href', manifestURL);
-
-        const swContent = `
-            self.addEventListener('install', (e) => {
-              e.waitUntil(
-                caches.open('bunny-css-editor-cache').then((cache) => {
-                  return cache.addAll(['./', './index.html']);
-                })
-              );
-            });
-
-            self.addEventListener('fetch', (e) => {
-              e.respondWith(
-                caches.match(e.request).then((response) => {
-                  return response || fetch(e.request);
-                })
-              );
-            });
-        `;
-        const swBlob = new Blob([swContent], {type: 'application/javascript'});
-        const swURL = URL.createObjectURL(swBlob);
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register(swURL);
-        }
     </script>
 </body>
 </html>
