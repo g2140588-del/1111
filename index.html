@@ -391,36 +391,16 @@
     <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="importJson(event)">
 
     <script>
-        // ✨✨ PWA Service Worker 注册 ✨✨
+// ✨✨ PWA Service Worker 注册 ✨✨
         // 只有当这个文件被部署到 HTTPS 服务器上时，这个部分才会生效
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // 我们直接将 Service Worker 代码作为字符串，用 Blob URL 注册
-                // 这避免了需要一个单独的 sw.js 文件
-                const swContent = `
-                    const CACHE_NAME = 'bunny-css-editor-cache-v1';
-                    const urlsToCache = ['./', './index.html']; // 缓存核心文件
-
-                    self.addEventListener('install', (event) => {
-                        event.waitUntil(
-                            caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
-                        );
-                    });
-
-                    self.addEventListener('fetch', (event) => {
-                        event.respondWith(
-                            caches.match(event.request).then((response) => response || fetch(event.request))
-                        );
-                    });
-                `;
-                const swBlob = new Blob([swContent], {type: 'application/javascript'});
-                const swUrl = URL.createObjectURL(swBlob);
-                
-                navigator.serviceWorker.register(swUrl)
+                // 乖乖调用真实的 sw.js 文件，Chrome 才会给你发安装弹窗哦！
+                navigator.serviceWorker.register('./sw.js')
                     .then(registration => {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        console.log('ServiceWorker 注册成功，作用域为: ', registration.scope);
                     }).catch(err => {
-                        console.log('ServiceWorker registration failed: ', err);
+                        console.log('ServiceWorker 注册失败: ', err);
                     });
             });
         }
