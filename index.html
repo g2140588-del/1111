@@ -347,7 +347,7 @@
                 <button class="css-editor-btn danger" onclick="closeCssPanel()">收起</button>
             </div>
             <div class="css-tools-ribbon">
-                <button class="css-editor-btn" onclick="removePseudoElements()">🧹 去除伪</button>
+<button class="css-editor-btn" onclick="openPseudoModal()">🧹 去除伪</button>
                 <button class="css-editor-btn" onclick="undoCss()">↩️ 撤回</button>
                 <button class="css-editor-btn" onclick="clearCss()" style="color:#ffb8b8;">🗑️ 清空</button>
                 <button class="css-editor-btn" onclick="toggleSearchBar()">🔍 查替</button>
@@ -536,28 +536,52 @@
             cssInput.focus();
         }
 
-        function removePseudoElements() {
+// ================= 专属精细化去伪逻辑 =================
+        function openPseudoModal() {
+            // 复用探测器的弹窗 UI
+            document.getElementById('insTitleText').innerHTML = '🧹 选择去伪部位';
+            
+            const listDiv = document.getElementById('insOptionList');
+            listDiv.innerHTML = `
+                <div class="ins-option-btn" onclick="appendPseudoCss('#chatInterface .app-header::before { display: none !important; }', '顶栏左条')">
+                    <div class="ins-opt-label">隐藏 顶栏左条 <span>点击添加</span></div>
+                    <div class="ins-opt-code">.app-header::before</div>
+                </div>
+                <div class="ins-option-btn" onclick="appendPseudoCss('#chatInterface .app-header::after { display: none !important; }', '顶栏右条')">
+                    <div class="ins-opt-label">隐藏 顶栏右条 <span>点击添加</span></div>
+                    <div class="ins-opt-code">.app-header::after</div>
+                </div>
+                <div class="ins-option-btn" onclick="appendPseudoCss('#chatContent .msg-row.user .bubble:not(.action-only):not(.sticker-only)::after { display: none !important; }', 'User气泡角标')">
+                    <div class="ins-opt-label">隐藏 User气泡角标 <span>点击添加</span></div>
+                    <div class="ins-opt-code">.msg-row.user .bubble::after</div>
+                </div>
+                <div class="ins-option-btn" onclick="appendPseudoCss('#chatContent .msg-row.ai .bubble:not(.action-only):not(.sticker-only)::before { display: none !important; }', 'Char气泡角标')">
+                    <div class="ins-opt-label">隐藏 Char气泡角标 <span>点击添加</span></div>
+                    <div class="ins-opt-code">.msg-row.ai .bubble::before</div>
+                </div>
+            `;
+            document.getElementById('inspectorModalOverlay').classList.add('show');
+        }
+
+        function appendPseudoCss(cssCode, name) {
             const cssInput = document.getElementById('customCssInput');
-            const hideCss = `
-/* ================= 一键隐藏聊天气泡与顶栏的小尾巴伪元素 ================= */
-#chatInterface .app-header::before, #chatInterface .app-header::after { display: none !important; }
-#chatContent .msg-row.ai .bubble:not(.action-only):not(.sticker-only)::before { display: none !important; }
-#chatContent .msg-row.user .bubble:not(.action-only):not(.sticker-only)::after { display: none !important; }
-#chatContent .bubble.action-only::before, #chatContent .bubble.action-only::after { display: none !important; }
-#chatContent .chat-quote-block::before { display: none !important; }
-/* 在下方书写你自己的自定义伪元素代码即可覆盖 */
-`;
-            if (cssInput.value.includes("一键隐藏聊天气泡与顶栏的小尾巴伪元素")) {
-                showToast('⚠️ 已经添加过隐藏代码了哦');
+            // 防重复添加检测
+            if (cssInput.value.includes(cssCode)) {
+                showToast('⚠️ [' + name + '] 的去伪代码已经加过啦！');
                 return;
             }
             
-            const newText = cssInput.value + (cssInput.value.endsWith('\n') ? '' : '\n\n') + hideCss;
+            const comment = `\n/* 隐藏 ${name} */\n`;
+            const newText = cssInput.value + (cssInput.value.endsWith('\n') || cssInput.value === '' ? '' : '\n') + comment + cssCode + '\n';
+            
             cssInput.value = newText;
             pushHistory(newText);
             updateEditor();
             scrollToBottom();
-            showToast('🧹 已在代码末尾追加伪元素隐藏代码！');
+            showToast('🧹 已精准追加 [' + name + '] 去伪代码！');
+            
+            // 添加完顺手关掉弹窗
+            closeInspectorModal();
         }
 
         // ================= 4. 智能搜索与替换 =================
